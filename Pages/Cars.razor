@@ -1,0 +1,96 @@
+﻿@page "/cars"
+
+@using CarRentalService.Data
+@inject CommandHandler commandHandler
+
+<h1>Cars</h1>
+@if (SelectedCar != null && SelectedCustomerUsername != null)
+{
+    <label>@SelectedCar.Make @SelectedCar.Model</label>
+    <button class="btn btn-success" @onclick="Hire">Hire Car</button>
+    <button class="btn btn-danger" @onclick="Cancel">Cancel</button>
+    return;
+}
+
+@if (dataLoaded == false)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    if (cars.Any())
+    {
+        @if (customers.Any())
+        {
+            <select @bind="SelectedCustomerUsername">
+
+                <option>Select User</option>
+                @foreach (var customer in customers)
+                {
+                    <option value="@customer.Username">@customer.Username</option>
+                }
+            </select>
+        }
+        else
+        {
+            <p><em>No customers found...</em></p>
+        }
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Car</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var car in cars)
+                {
+                    <tr>
+                        <td>@car.Make @car.Model</td>
+                        <td><button class="btn btn-secondary" @onclick="() => Select(car)">Select</button></td>
+                    </tr>
+
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p><em>No Cars Found...</em></p>
+    }
+}
+
+@code {
+    [CascadingParameter(Name = "CommandArgs")]
+    protected CommandArgs commandArgs { get; set; }
+
+    bool dataLoaded { get; set; } = false;
+
+    IReadOnlyCollection<Customer> customers;
+    IReadOnlyCollection<Car> cars;
+    string SelectedCustomerUsername = null;
+    Car SelectedCar;
+
+    protected override async Task OnInitializedAsync()
+    {
+        cars = await commandHandler.GetCars();
+        customers = await commandHandler.GetCustomers();
+        dataLoaded = true;
+    }
+
+    void Select(Car car)
+    {
+        SelectedCar = car;
+    }
+
+    void Cancel()
+    {
+        SelectedCar = null;
+    }
+
+    async Task Hire()
+    {
+        await commandHandler.HireCar(commandArgs, SelectedCar.Make, SelectedCustomerUsername);
+        SelectedCar = null;
+        commandArgs.CorrelationId = Guid.NewGuid().ToString();
+    }
+}

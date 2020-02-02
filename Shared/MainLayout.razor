@@ -1,0 +1,43 @@
+﻿@inherits LayoutComponentBase
+
+@using CarRentalService.Data
+@inject Authentication AuthenticationService
+
+
+@{
+    CommandArgs commandArgs = new CommandArgs(Authentication.LoggedInUser, Guid.NewGuid().ToString());
+}
+
+<div class="sidebar">
+    <NavMenu />
+</div>
+
+<div class="main">
+    <div class="top-row px-4">
+        <label>Current Logged In User: @Authentication.LoggedInUser</label>
+        <a href="https://docs.microsoft.com/en-us/aspnet/" target="_blank">About</a>
+    </div>
+
+    <div class="content px-4">
+        @if (Authentication.LoggedInUser != null)
+        {
+            <CascadingValue Value="@commandArgs" Name="CommandArgs">
+            @Body
+            </CascadingValue>
+        }
+        else
+        {
+            <input type="text" @bind="username" />
+            <button class="btn btn-primary" @onclick="LoginUser">Login</button>
+        }
+    </div>
+</div>
+
+@code {
+    string username;
+
+    void LoginUser()
+    {
+        AuthenticationService.Authorize(username);
+    }
+}

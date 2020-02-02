@@ -1,0 +1,37 @@
+﻿@page "/log-listener"
+
+@using CarRentalService.Data
+@using CarRentalService.Data.Handlers;
+@using CarRentalService.Data.Events;
+<table class="table">
+    <thead>
+        <tr>
+            <th>Car</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var verifyCode in messages)
+        {
+            <tr>
+                <td>@verifyCode</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    static List<string> messages = new List<string>();
+
+    public class LogEventListener : IEventHandler, IEventHandler<LogEvent>
+    {
+        public void Handle(LogEvent integrationEvent)
+        {
+            messages.Add($"{DateTime.UtcNow.ToString()} - {integrationEvent.Message} - {integrationEvent.Username} - {integrationEvent.CorrelationId}");
+        }
+
+        public void Handle(IIntegrationEvent integrationEvent)
+        {
+            Handle((LogEvent)integrationEvent);
+        }
+    }
+}

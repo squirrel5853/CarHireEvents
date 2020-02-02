@@ -1,0 +1,82 @@
+﻿@page "/customers"
+
+@using CarRentalService.Data
+@inject CommandHandler commandHandler
+
+<h1>Customers</h1>
+
+@if (SelectedCustomer != null)
+{
+    <input type="text" @bind="VerifyCode" />
+    <button class="btn btn-success" @onclick="Verify">Verify</button>
+    return;
+}
+
+@if (customersLoaded == false)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <input type="text" @bind="SignupUsername" />
+    <button class="btn btn-primary" @onclick="SignUp">Sign Up</button>
+    if (customers.Any())
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Verified?</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var customer in customers)
+                {
+                    <tr>
+                        <td>@customer.Username</td>
+                        <td>@customer.IsVerified</td>
+                        <td><button class="btn btn-secondary" @onclick="() => Select(customer)">Select</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p><em>No Customers Found...</em></p>
+    }
+}
+
+@code {
+    [CascadingParameter(Name = "CommandArgs")]
+    protected CommandArgs commandArgs { get; set; }
+
+    bool customersLoaded { get; set; } = false;
+    IReadOnlyCollection<Customer> customers;
+    Customer SelectedCustomer = null;
+    protected override async Task OnInitializedAsync()
+    {
+        customers = await commandHandler.GetCustomers();
+        customersLoaded = true;
+    }
+
+    private string SignupUsername;
+    private string VerifyCode;
+
+    async Task SignUp()
+    {
+        await commandHandler.SignUp(commandArgs, SignupUsername);
+    }
+
+    void Select(Customer customer)
+    {
+        SelectedCustomer = customer;
+    }
+
+    async Task Verify()
+    {
+        await commandHandler.VerifyCustomer(commandArgs, SelectedCustomer.Username, VerifyCode);
+        SelectedCustomer = null;
+    }
+}

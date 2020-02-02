@@ -1,0 +1,37 @@
+﻿@page "/code-listener"
+
+@using CarRentalService.Data
+@using CarRentalService.Data.Handlers;
+@using CarRentalService.Data.Events;
+<table class="table">
+    <thead>
+        <tr>
+            <th>Car</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var verifyCode in codes)
+        {
+            <tr>
+                <td>@verifyCode</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    static List<string> codes = new List<string>();
+
+    public class CustomerVerificationGeneratedEventHandler : IEventHandler, IEventHandler<CustomerVerificationGeneratedEvent>
+    {
+        public void Handle(CustomerVerificationGeneratedEvent integrationEvent)
+        {
+            codes.Add(integrationEvent.VerificationCode);
+        }
+
+        public void Handle(IIntegrationEvent integrationEvent)
+        {
+            Handle((CustomerVerificationGeneratedEvent)integrationEvent);
+        }
+    }
+}
